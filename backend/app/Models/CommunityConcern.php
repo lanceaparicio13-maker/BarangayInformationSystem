@@ -2,37 +2,39 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Resident;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommunityConcern extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-    'resident_id',
-    'title',
-    'description',
-    'category',
-    'status',
-    'staff_remarks',
-    'assigned_to',
-    'resolved_at',
-];
-
-protected function casts(): array
-{
-    return [
-        'resolved_at' => 'datetime',
+        'resident_id',
+        'title',
+        'description',
+        'category',
+        'status',
+        'staff_remarks',
+        'assigned_to',
+        'resolved_at',
     ];
-}
 
-public function resident()
-{
-    return $this->belongsTo(Resident::class);
-}
+    protected function casts(): array
+    {
+        return [
+            'resolved_at' => 'datetime',
+        ];
+    }
 
-public function assignee()
-{
-    return $this->belongsTo(User::class, 'assigned_to');
-}
+    public function resident(): BelongsTo
+    {
+        return $this->belongsTo(Resident::class);
+    }
+
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
 }

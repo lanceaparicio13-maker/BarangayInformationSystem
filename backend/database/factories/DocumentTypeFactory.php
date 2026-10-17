@@ -10,15 +10,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class DocumentTypeFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = DocumentType::class;
+
     public function definition(): array
     {
         return [
-            //
+            'name' => fake()->unique()->words(3, true),
+            'description' => fake()->sentence(),
+            'fee' => fake()->randomElement([0, 20, 50, 100]),
+            'is_active' => true,
         ];
     }
 }
