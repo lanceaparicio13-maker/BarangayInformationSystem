@@ -9,21 +9,68 @@ use Illuminate\Validation\Rule;
 
 class StaffDocumentRequestController extends Controller
 {
-    // View all document requests
-    public function index()
+    /**
+     * View document requests with search, filtering, and pagination.
+     */
+    public function index(Request $request)
     {
-        $requests = DocumentRequest::with([
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => [
+                'nullable',
+                Rule::in([
+                    'pending',
+                    'approved',
+                    'rejected',
+                    'released',
+                ]),
+            ],
+            'per_page' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:100',
+            ],
+        ]);
+
+        $query = DocumentRequest::with([
             'resident',
             'documentType',
             'processor',
-        ])->latest()->get();
-
-        return response()->json([
-            'document_requests' => $requests,
         ]);
+
+        // Search by resident name or document type.
+        if (! empty($validated['search'])) {
+            $search = $validated['search'];
+
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery->whereHas('resident', function ($residentQuery) use ($search) {
+                    $residentQuery->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('middle_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                })->orWhereHas('documentType', function ($typeQuery) use ($search) {
+                    $typeQuery->where('name', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        // Filter by request status.
+        if (! empty($validated['status'])) {
+            $query->where('status', $validated['status']);
+        }
+
+        // Return paginated results and preserve query parameters in page links.
+        $requests = $query
+            ->latest()
+            ->paginate($validated['per_page'] ?? 10)
+            ->withQueryString();
+
+        return response()->json($requests);
     }
 
-    // Approve or reject a document request
+    /**
+     * Approve or reject a pending document request.
+     */
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
@@ -63,7 +110,9 @@ class StaffDocumentRequestController extends Controller
         ]);
     }
 
-    // Mark an approved document request as released
+    /**
+     * Mark an approved document request as released.
+     */
     public function release($id)
     {
         $documentRequest = DocumentRequest::find($id);
