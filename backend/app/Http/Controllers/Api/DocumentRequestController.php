@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDocumentRequestRequest;
 use App\Models\DocumentRequest;
 use App\Models\DocumentType;
 use App\Models\Resident;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class DocumentRequestController extends Controller
 {
-    // Get all active document types
+    /**
+     * Get all active document types.
+     */
     public function documentTypes()
     {
         return response()->json([
@@ -21,16 +23,12 @@ class DocumentRequestController extends Controller
         ]);
     }
 
-    // Submit a document request
-    public function store(Request $request)
+    /**
+     * Submit a document request.
+     */
+    public function store(StoreDocumentRequestRequest $request)
     {
         $user = $request->user();
-
-        if ($user->role !== 'resident') {
-            return response()->json([
-                'message' => 'Only residents can submit document requests.',
-            ], 403);
-        }
 
         $resident = Resident::where('user_id', $user->id)->first();
 
@@ -40,15 +38,7 @@ class DocumentRequestController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'document_type_id' => [
-                'required',
-                'integer',
-                Rule::exists('document_types', 'id')
-                    ->where('is_active', true),
-            ],
-            'purpose' => ['required', 'string', 'max:255'],
-        ]);
+        $validated = $request->validated();
 
         $documentRequest = DocumentRequest::create([
             'resident_id' => $resident->id,
@@ -63,7 +53,9 @@ class DocumentRequestController extends Controller
         ], 201);
     }
 
-    // View the resident's own document requests
+    /**
+     * View the authenticated resident's own document requests.
+     */
     public function myRequests(Request $request)
     {
         $user = $request->user();
@@ -90,7 +82,9 @@ class DocumentRequestController extends Controller
         ]);
     }
 
-    // Staff and admin: view all document requests
+    /**
+     * Staff and administrators can view all document requests.
+     */
     public function index(Request $request)
     {
         if (! in_array($request->user()->role, ['staff', 'admin'], true)) {
