@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\DocumentRequestController;
 use App\Http\Controllers\Api\StaffDocumentRequestController;
+use App\Http\Controllers\Api\DashboardController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,6 +25,11 @@ Route::middleware('auth:sanctum')->group(function () {
             'user' => $request->user()->name,
         ]);
     })->middleware('role:staff,admin');
+
+    Route::get('/staff/dashboard', [
+    DashboardController::class,
+    'index',
+])->middleware(['auth:sanctum', 'role:staff,admin']);
 
     // Resident profile management
     Route::get('/resident/profile', [
