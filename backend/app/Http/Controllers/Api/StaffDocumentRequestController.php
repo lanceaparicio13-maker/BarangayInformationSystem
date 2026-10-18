@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateDocumentRequestStatusRequest;
 use App\Models\DocumentRequest;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -71,15 +72,10 @@ class StaffDocumentRequestController extends Controller
     /**
      * Approve or reject a pending document request.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateDocumentRequestStatusRequest $request, $id)
     {
-        $validated = $request->validate([
-            'status' => [
-                'required',
-                Rule::in(['approved', 'rejected']),
-            ],
-            'staff_remarks' => ['nullable', 'string', 'max:1000'],
-        ]);
+        // The Form Request validates the input and authorizes the user's role.
+        $validated = $request->validated();
 
         $documentRequest = DocumentRequest::find($id);
 
@@ -89,6 +85,7 @@ class StaffDocumentRequestController extends Controller
             ], 404);
         }
 
+        // Only pending requests can be approved or rejected.
         if ($documentRequest->status !== 'pending') {
             return response()->json([
                 'message' => 'Only pending requests can be approved or rejected.',
@@ -123,6 +120,7 @@ class StaffDocumentRequestController extends Controller
             ], 404);
         }
 
+        // Only approved requests can be released.
         if ($documentRequest->status !== 'approved') {
             return response()->json([
                 'message' => 'Only approved requests can be released.',
