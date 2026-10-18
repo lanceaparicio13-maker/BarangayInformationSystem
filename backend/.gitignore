@@ -1,9 +1,9 @@
-@"
 # Laravel
 /backend/vendor/
 /backend/.env
 /backend/.env.*
 !/backend/.env.example
+/backend/.phpunit.result.cache
 
 # React
 /frontend/node_modules/
@@ -17,4 +17,3 @@
 .idea/
 .DS_Store
 Thumbs.db
-"@ | Set-Content .gitignore
