@@ -7,12 +7,12 @@ use App\Http\Controllers\Api\ResidentController;
 use App\Http\Controllers\Api\DocumentRequestController;
 use App\Http\Controllers\Api\StaffDocumentRequestController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\StaffResidentController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
-
     // Authenticated user
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -26,10 +26,24 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     })->middleware('role:staff,admin');
 
+    // Staff/admin dashboard
     Route::get('/staff/dashboard', [
-    DashboardController::class,
-    'index',
-])->middleware(['auth:sanctum', 'role:staff,admin']);
+        DashboardController::class,
+        'index',
+    ])->middleware('role:staff,admin');
+
+    // Staff/admin resident directory
+    Route::middleware('role:staff,admin')->prefix('staff')->group(function () {
+        Route::get('/residents', [
+            StaffResidentController::class,
+            'index',
+        ]);
+
+        Route::get('/residents/{id}', [
+            StaffResidentController::class,
+            'show',
+        ]);
+    });
 
     // Resident profile management
     Route::get('/resident/profile', [
@@ -47,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
         'update',
     ]);
 
-    // Get active document types
+    // Active document types
     Route::get('/document-types', [
         DocumentRequestController::class,
         'documentTypes',
@@ -59,7 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
         'store',
     ]);
 
-    // Resident: view their own document requests
+    // Resident: view their own requests
     Route::get('/my-document-requests', [
         DocumentRequestController::class,
         'myRequests',
@@ -71,22 +85,18 @@ Route::middleware('auth:sanctum')->group(function () {
         'index',
     ])->middleware('role:staff,admin');
 
-    // Staff/admin: manage document requests
+    // Staff/admin document request management
     Route::middleware('role:staff,admin')->group(function () {
-
-        // View all requests for staff
         Route::get('/staff/document-requests', [
             StaffDocumentRequestController::class,
             'index',
         ]);
 
-        // Approve or reject a pending request
         Route::put('/staff/document-requests/{id}', [
             StaffDocumentRequestController::class,
             'update',
         ]);
 
-        // Mark an approved request as released
         Route::put('/staff/document-requests/{id}/release', [
             StaffDocumentRequestController::class,
             'release',
