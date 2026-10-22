@@ -1,7 +1,8 @@
-
 import { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext.js'
 import LoginPage from './pages/LoginPage.jsx'
+import RegisterPage from './pages/RegisterPage.jsx'
+import ResidentPortalPage from './pages/ResidentPortalPage.jsx'
 import DocumentRequestsPage from './pages/DocumentRequestsPage.jsx'
 import ResidentsPage from './pages/ResidentsPage.jsx'
 import DocumentTypesPage from './pages/DocumentTypesPage.jsx'
@@ -24,6 +25,7 @@ export default function App() {
   const [summary, setSummary] = useState(null)
   const [dashboardLoading, setDashboardLoading] = useState(true)
   const [dashboardError, setDashboardError] = useState('')
+  const [showRegister, setShowRegister] = useState(false)
 
   const { user, loading, logout, isStaff } = useAuth()
 
@@ -90,7 +92,7 @@ export default function App() {
     try {
       await logout()
     } catch {
-      // AuthContext handles clearing the local session.
+      // AuthContext clears the local session.
     }
   }
 
@@ -103,17 +105,24 @@ export default function App() {
   }
 
   if (!user) {
-    return <LoginPage />
+    return showRegister ? (
+      <RegisterPage onLoginClick={() => setShowRegister(false)} />
+    ) : (
+      <LoginPage onRegisterClick={() => setShowRegister(true)} />
+    )
+  }
+
+  if (user.role === 'resident') {
+    return <ResidentPortalPage />
   }
 
   if (!isStaff) {
     return (
       <main className="login-page">
         <section className="login-card">
-          <h1>Staff access required</h1>
+          <h1>Access unavailable</h1>
           <p>
-            Your account does not have permission to access the staff
-            dashboard.
+            Your account does not have permission to access this workspace.
           </p>
           <button
             type="button"
@@ -176,9 +185,7 @@ export default function App() {
                 activePage === item.name ? 'active' : ''
               }`}
               onClick={() => setActivePage(item.name)}
-              aria-current={
-                activePage === item.name ? 'page' : undefined
-              }
+              aria-current={activePage === item.name ? 'page' : undefined}
             >
               <span className="nav-icon" aria-hidden="true">
                 {item.icon}
@@ -212,9 +219,7 @@ export default function App() {
       <main className="main-content">
         <header className="topbar">
           <div>
-            <span className="topbar-label">
-              BARANGAY ADMINISTRATION
-            </span>
+            <span className="topbar-label">BARANGAY ADMINISTRATION</span>
             <h2>Barangay Information System</h2>
           </div>
 
@@ -237,8 +242,7 @@ export default function App() {
                   <h1>Good day, {user.name}!</h1>
                   <p>
                     Welcome to your barangay information system. Manage
-                    requests and access barangay records from one
-                    workspace.
+                    requests and access barangay records from one workspace.
                   </p>
                 </div>
                 <span className="staff-badge">✓ Staff portal</span>
@@ -281,18 +285,14 @@ export default function App() {
                   {stats.map((stat) => (
                     <article className="stat-card" key={stat.label}>
                       <div className="stat-card-top">
-                        <span className="stat-label">
-                          {stat.label}
-                        </span>
+                        <span className="stat-label">{stat.label}</span>
                         <span className="stat-icon" aria-hidden="true">
                           {stat.icon}
                         </span>
                       </div>
 
                       <strong className="stat-value">
-                        {dashboardLoading
-                          ? '...'
-                          : formatNumber(stat.value)}
+                        {dashboardLoading ? '...' : formatNumber(stat.value)}
                       </strong>
 
                       <span className="stat-description">
@@ -346,25 +346,15 @@ export default function App() {
               </section>
 
               <footer className="dashboard-footer">
-                <span>
-                  Barangay Information System · Staff Workspace
-                </span>
-                <span>
-                  Secure access for authorized personnel
-                </span>
+                <span>Barangay Information System · Staff Workspace</span>
+                <span>Secure access for authorized personnel</span>
               </footer>
             </>
           )}
 
-          {activePage === 'Document Requests' && (
-            <DocumentRequestsPage />
-          )}
-
+          {activePage === 'Document Requests' && <DocumentRequestsPage />}
           {activePage === 'Residents' && <ResidentsPage />}
-
-          {activePage === 'Document Types' && (
-            <DocumentTypesPage />
-          )}
+          {activePage === 'Document Types' && <DocumentTypesPage />}
         </div>
       </main>
     </div>

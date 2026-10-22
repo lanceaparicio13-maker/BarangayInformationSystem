@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext.js'
 import './LoginPage.css'
 
-export default function LoginPage() {
+export default function LoginPage({ onRegisterClick }) {
   const { login } = useAuth()
 
   const [email, setEmail] = useState('')
@@ -12,34 +12,18 @@ export default function LoginPage() {
 
   async function handleSubmit(event) {
     event.preventDefault()
-
     setError('')
     setSubmitting(true)
 
     try {
-      const loggedInUser = await login(email.trim(), password)
-
-      if (
-        loggedInUser.role !== 'staff' &&
-        loggedInUser.role !== 'admin'
-      ) {
-        setError(
-          'Your account does not have staff access. Please use a staff or administrator account.',
-        )
-
-        return
-      }
-
-      // AuthProvider updates the user state.
-      // App.jsx will display the dashboard after login.
+      await login(email.trim(), password)
+      // App.jsx selects the correct portal using the user's role.
     } catch (err) {
-      if (err.response?.status === 422) {
+      if (err.response?.status === 422 || err.response?.status === 401) {
         setError(
           err.response.data?.message ||
-            'Please check your email and password.',
+            'Invalid email or password. Please try again.',
         )
-      } else if (err.response?.status === 401) {
-        setError('Invalid email or password.')
       } else if (err.code === 'ECONNABORTED') {
         setError('The server took too long to respond. Please try again.')
       } else if (!err.response) {
@@ -48,8 +32,7 @@ export default function LoginPage() {
         )
       } else {
         setError(
-          err.response.data?.message ||
-            'Login failed. Please try again.',
+          err.response.data?.message || 'Login failed. Please try again.',
         )
       }
     } finally {
@@ -61,10 +44,7 @@ export default function LoginPage() {
     <main className="login-page">
       <section className="login-card">
         <div className="login-brand">
-          <div className="login-brand-icon" aria-hidden="true">
-            B
-          </div>
-
+          <div className="login-brand-icon" aria-hidden="true">B</div>
           <div>
             <p className="login-eyebrow">BARANGAY MANAGEMENT</p>
             <h1>Barangay Information System</h1>
@@ -72,10 +52,11 @@ export default function LoginPage() {
         </div>
 
         <div className="login-heading">
-          <p className="login-label">STAFF PORTAL</p>
-          <h2>Welcome back</h2>
+          <p className="login-label">WELCOME</p>
+          <h2>Sign in to your account</h2>
           <p>
-            Sign in to manage document requests and barangay records.
+            Access resident services or manage barangay records using your
+            authorized account.
           </p>
         </div>
 
@@ -126,9 +107,20 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="register-switch">
+          Don't have a resident account?{' '}
+          <button
+            type="button"
+            onClick={onRegisterClick}
+            disabled={submitting}
+          >
+            Register here
+          </button>
+        </div>
+
         <div className="login-footer">
-          <p>Authorized personnel only.</p>
-          <p>Barangay Information System · Staff Access</p>
+          <p>Secure access for residents and authorized personnel.</p>
+          <p>Barangay Information System</p>
         </div>
       </section>
     </main>

@@ -1,0 +1,35 @@
+.register-card {
+  width: min(100%, 500px);
+}
+
+.register-switch {
+  margin-top: 20px;
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
+}
+
+.register-switch button {
+  border: 0;
+  padding: 4px;
+  background: transparent;
+  color: #2563eb;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-switch button:hover {
+  text-decoration: underline;
+}
+
+.register-switch button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+.register-switch button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

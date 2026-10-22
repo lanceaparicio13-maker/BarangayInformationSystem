@@ -55,7 +55,7 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  // Log in and save the API token.
+  // Log in an existing user and save the API token.
   const login = useCallback(async (email, password) => {
     const response = await api.post('/login', {
       email,
@@ -76,6 +76,34 @@ export function AuthProvider({ children }) {
     return loggedInUser
   }, [])
 
+  // Register a new resident and save the API token.
+  const register = useCallback(async (
+    name,
+    email,
+    password,
+    passwordConfirmation,
+  ) => {
+    const response = await api.post('/register', {
+      name,
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
+    })
+
+    const { token, user: registeredUser } = response.data
+
+    if (!token || !registeredUser) {
+      throw new Error(
+        'The server returned an incomplete registration response.',
+      )
+    }
+
+    localStorage.setItem('bis_token', token)
+    setUser(registeredUser)
+
+    return registeredUser
+  }, [])
+
   // Log out and clear the local session.
   const logout = useCallback(async () => {
     try {
@@ -91,6 +119,7 @@ export function AuthProvider({ children }) {
     user,
     loading,
     login,
+    register,
     logout,
     isStaff: user?.role === 'staff' || user?.role === 'admin',
   }
