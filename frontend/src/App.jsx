@@ -1,10 +1,12 @@
+
 import { useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext.js'
 import LoginPage from './pages/LoginPage.jsx'
 import DocumentRequestsPage from './pages/DocumentRequestsPage.jsx'
+import ResidentsPage from './pages/ResidentsPage.jsx'
+import DocumentTypesPage from './pages/DocumentTypesPage.jsx'
 import api from './services/api.js'
 import './App.css'
-import ResidentsPage from './pages/ResidentsPage.jsx'
 
 const navigationItems = [
   { name: 'Dashboard', icon: '▦' },
@@ -56,8 +58,6 @@ export default function App() {
       }
     }
 
-    // Defer the initial state changes so they do not occur
-    // synchronously inside the effect.
     Promise.resolve().then(() => {
       if (!cancelled) {
         loadDashboard()
@@ -90,7 +90,7 @@ export default function App() {
     try {
       await logout()
     } catch {
-      // The AuthContext clears the local session even if the API fails.
+      // AuthContext handles clearing the local session.
     }
   }
 
@@ -176,6 +176,9 @@ export default function App() {
                 activePage === item.name ? 'active' : ''
               }`}
               onClick={() => setActivePage(item.name)}
+              aria-current={
+                activePage === item.name ? 'page' : undefined
+              }
             >
               <span className="nav-icon" aria-hidden="true">
                 {item.icon}
@@ -281,10 +284,7 @@ export default function App() {
                         <span className="stat-label">
                           {stat.label}
                         </span>
-                        <span
-                          className="stat-icon"
-                          aria-hidden="true"
-                        >
+                        <span className="stat-icon" aria-hidden="true">
                           {stat.icon}
                         </span>
                       </div>
@@ -336,7 +336,7 @@ export default function App() {
                               ? 'Review and manage resident applications.'
                               : item.name === 'Residents'
                                 ? 'Access registered resident information.'
-                                : 'View available barangay documents.'}
+                                : 'Manage available barangay documents and fees.'}
                           </span>
                         </span>
                         <span aria-hidden="true">→</span>
@@ -359,36 +359,12 @@ export default function App() {
           {activePage === 'Document Requests' && (
             <DocumentRequestsPage />
           )}
+
           {activePage === 'Residents' && <ResidentsPage />}
+
           {activePage === 'Document Types' && (
-              <section className="placeholder-section">
-                <div className="placeholder-icon" aria-hidden="true">
-                  {navigationItems.find(
-                    (item) => item.name === activePage,
-                  )?.icon || '▦'}
-                </div>
-
-                <p className="section-eyebrow">
-                  BARANGAY INFORMATION SYSTEM
-                </p>
-
-                <h1>{activePage}</h1>
-
-                <p>
-                  This workspace is ready for integration with the
-                  Laravel API. Its listing and management features
-                  will be connected next.
-                </p>
-
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={() => setActivePage('Dashboard')}
-                >
-                  ← Back to dashboard
-                </button>
-              </section>
-            )}
+            <DocumentTypesPage />
+          )}
         </div>
       </main>
     </div>
